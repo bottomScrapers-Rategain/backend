@@ -1,4 +1,4 @@
-from es import esclient
+from Utils.es import esclient
 import pandas as pd
 from elasticsearch import helpers
 import json
@@ -11,6 +11,14 @@ def createIndex(indexName):
 
 def getRecord(indexName,id=id):
     return client.get(index=indexName, doc_type="_doc", id=id)
+
+def checkIfExists(indexName,id=id):
+    try:
+        record = getRecord(indexName,id)
+        return len(record)!=0
+    
+    except Exception as e:
+        return False
 
 def getAllIndex():
     res=client.indices.get_alias("*")
@@ -71,6 +79,10 @@ def insertRecord(indexName, record):
 def updateRecord(indexName, id, record):
     return client.update(index = indexName, id=id, body={"doc": record})
 
+
+def deleteRecord(indexName,id):
+    return client.delete(index=indexName,id=id)
+
 #data is a pd dataframe
 def bulkUpload(indexName, data, saveSize=50):
 
@@ -108,3 +120,7 @@ def bulkUpload(indexName, data, saveSize=50):
 
     if len(actions) > 0:
         helpers.bulk(client, actions)
+
+def runQuery(index,query):
+    res = client.search(index=index,body=query)
+    return res

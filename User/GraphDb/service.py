@@ -38,6 +38,10 @@ class Neo4jConnector:
         with self._driver.session() as session:
             session.write_transaction(self._delete_all_nodes_and_edges)
 
+    def deleteEdgesForNode(self, nodeId):
+            with self._driver.session() as session:
+                session.writeTransaction(self._deleteEdgesForNode, nodeId)
+
     @staticmethod
     def _add_node(tx, nodeId):
         result = tx.run("MATCH (n:Node {id: $nodeId}) RETURN count(n) AS count", nodeId=nodeId)
@@ -67,9 +71,15 @@ class Neo4jConnector:
     def _delete_all_nodes_and_edges(tx):
         tx.run("MATCH (n) DETACH DELETE n")
 
+    @staticmethod
+    def _deleteEdgesForNode(tx, nodeId):
+        tx.run("MATCH (a:Node {id: $nodeId})-[r:CONNECTED]-() DELETE r", nodeId=nodeId)
+
 neo4jUri = os.getenv("neo4jUri") 
 neo4jUser = os.getenv("neo4jUsername")
 neo4jPassword = os.getenv("neo4jPassword")
 
 connector = Neo4jConnector(neo4jUri, neo4jUser, neo4jPassword)
 connector.connect()
+# print(connector.getConnectedComponent(2))
+# connector.close()
