@@ -13,6 +13,9 @@ nlp = spacy.load("en_core_web_md")
 def semanticSimilarity(query1, query2):
     query1 = query1.lower()
     query2 = query2.lower()
+
+    if query1=="" or query2=="":
+        return 0
     doc1 = nlp(query1)
     doc2 = nlp(query2)
     similarity = doc1.similarity(doc2)
@@ -100,17 +103,33 @@ class UserService:
 
     
     @staticmethod
-    def updateUser(userId,key,addValue):
+    def updateUser(userId,key,addValue)->User:
         user: User = UserService.getUserById(userId)
 
+
         if(user.getId()==-1):
-            UserService.saveUser(User(id=userId,key=addValue))
+            saveDict = User(-1).__dict__
+            saveDict['id'] = userId
+
+            if key!='ipaddress':
+                saveDict[key] = [addValue]
+            else:
+                saveDict[key]=addValue
+
+            UserService.saveUser(User(**saveDict))
+            return User(**saveDict)
         
         user = user.__dict__
-        user[key].append(addValue)
+
+        if key!='ipAddress':
+            user[key].append(addValue)
+        else:
+            user[key] = addValue
+
         user = User(**user)
 
         UserService._updateUser(userId,user)
+        return user
     
     @staticmethod
     def getSimilarUser(user: User)->User:
@@ -131,34 +150,49 @@ class UserService:
         
 
         def getScore(x):
-            return (x['ipAddress']==user['ipAddress'])*50 + findExactMatches(x['browserData'],user['browserData']) + jaccardSimilarity(x['interests'],user['interests'],3) + fuzzySimilarity(x['searchTerms'],user['searchTerms'],2) + jaccardSimilarity(x['interactedAds'],user['interactedAds'],1)
+            score = (x['ipAddress']==user['ipAddress'])*50 + findExactMatches(x['browserData'],user['browserData']) + jaccardSimilarity(x['interests'],user['interests'],3) + fuzzySimilarity(x['searchTerms'],user['searchTerms'],2) + jaccardSimilarity(x['interactedAds'],user['interactedAds'],1)
+            print(score)
+            return score
         
         
         res = runQuery(userDataIndex,query)
+        data = [d["_source"] for d in res['hits']['hits']]
 
-        if len(res['hits']['hits'])==0:
+        if len(data)==0:
             return User(id=-1)
         
-        data = [d["_source"] for d in res['hits']['hits']]
+        data = list(filter(lambda x:getScore(x)>4.0,data))
+
+        if len(data)==0:
+            return User(id=-1)
+        
         data.sort(key = lambda x: getScore(x),reverse=True)
 
         return User(**data[0])
     
     @staticmethod
     def mergeSimilarSessions(userId):
-        if not checkIfExists(userDataIndex,userId):
-            return
-        
-        user: User = UserService.getUserById(userId)
+
+        if type(userId) != User:
+            if not checkIfExists(userDataIndex,userId):
+                return
+            
+            user: User = UserService.getUserById(userId)
+
+        elif type(userId) == User:
+            user = userId
+            userId = userId.getId()
+            print(userId)
 
         graphClient.addNode(userId)
         graphClient.deleteEdgesForNode(userId)
 
         similarUser = UserService.getSimilarUser(user)
-
+        print(similarUser.__dict__)
         if similarUser.getId()==-1:
             return
 
+        graphClient.addNode(similarUser.getId())
         graphClient.addEdge(userId,similarUser.getId())
         return
     

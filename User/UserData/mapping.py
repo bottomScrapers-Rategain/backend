@@ -13,7 +13,7 @@ userDataMapping = {
 
 
 class User:
-    def __init__(self,id,ipAddress="",browserData="",searchTerms="",interactedAds="",interests=""):
+    def __init__(self,id,ipAddress="",browserData=[],searchTerms=[],interactedAds=[],interests=[]):
         self.id = id
         self.ipAddress = ipAddress
         self.browserData = browserData

@@ -40,7 +40,7 @@ class Neo4jConnector:
 
     def deleteEdgesForNode(self, nodeId):
             with self._driver.session() as session:
-                session.writeTransaction(self._deleteEdgesForNode, nodeId)
+                session.write_transaction(self._deleteEdgesForNode, nodeId)
 
     @staticmethod
     def _add_node(tx, nodeId):

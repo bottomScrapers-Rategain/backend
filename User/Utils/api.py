@@ -10,7 +10,10 @@ def createIndex(indexName):
     return res
 
 def getRecord(indexName,id=id):
-    return client.get(index=indexName, doc_type="_doc", id=id)
+    try:
+        return client.get(index=indexName, doc_type="_doc", id=id)
+    except:
+        return []
 
 def checkIfExists(indexName,id=id):
     try:
