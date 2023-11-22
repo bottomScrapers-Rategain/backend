@@ -42,6 +42,13 @@ def getValue():
     return UserService.getUserData(body['userId'],body['key'])
 
 
+@app.route('/getallvalue',methods=["POST"])
+def getAllValue():
+    body = request.get_json()
+
+    return jsonify(UserService,getAllValue(body['userId']))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

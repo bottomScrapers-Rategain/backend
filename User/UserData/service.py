@@ -219,6 +219,39 @@ class UserService:
             return []
         
         return topNFrequentValues(res,key)
+    
+    @staticmethod
+    def getAllUserData(userId):
+        keyList = ["interests","searchTerms","interactedAds"]
+
+        if not checkIfExists(userDataIndex,userId):
+            return
+        
+        connectedUserIds = graphClient.getConnectedComponent(userId)
+
+        query = {
+            "query":{
+                "ids":{
+                    "values":connectedUserIds
+                }
+            }
+        }
+
+        res = runQuery(userDataIndex,query)
+
+        res = [d["_source"] for d in res['hits']['hits']]
+
+        if len(res)==0:
+            return []
+        
+        ret = dict()
+
+        for key in keyList:
+            ret[key] = topNFrequentValues(res,key)
+
+        return ret
+
+
 
 
 
