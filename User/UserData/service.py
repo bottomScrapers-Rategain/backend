@@ -227,8 +227,9 @@ class UserService:
         if not checkIfExists(userDataIndex,userId):
             return
         
+        print(userId)
         connectedUserIds = graphClient.getConnectedComponent(userId)
-
+        print(connectedUserIds)
         query = {
             "query":{
                 "ids":{
