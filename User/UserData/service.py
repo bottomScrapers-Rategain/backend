@@ -202,6 +202,7 @@ class UserService:
             return
         
         connectedUserIds = graphClient.getConnectedComponent(userId)
+        connectedUserIds.append(userId)
 
         query = {
             "query":{
@@ -229,6 +230,7 @@ class UserService:
         
         print(userId)
         connectedUserIds = graphClient.getConnectedComponent(userId)
+        connectedUserIds.append(userId)
         print(connectedUserIds)
         query = {
             "query":{
