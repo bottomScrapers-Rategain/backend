@@ -3,6 +3,16 @@ from flask_cors import CORS
 from UserData import userDataIndex,UserService,User
 from Utils import getRecord,getAllRecords
 import random
+import hashlib
+
+def pseudononymizeIp(ipAddress):
+    # Use a hash function to create a deterministic pseudononymized value
+    hashedValue = hashlib.md5(ipAddress.encode()).hexdigest()
+
+    # Take the first 8 characters of the hash as the pseudononymized IP
+    pseudononymizedIp = '.'.join([hashedValue[i:i+2] for i in range(0, 8, 2)])
+
+    return pseudononymizedIp
 
 app = Flask(__name__)
 CORS(app)
@@ -43,7 +53,7 @@ def getRecords():
 @app.route('/update',methods=['POST'])
 def updateRecord():
     body = request.get_json()
-    ipAddress = request.remote_addr
+    ipAddress = pseudononymizeIp(request.remote_addr)
     if 'userId' not in body or 'key' not in body or 'value' not in body:
         return
 

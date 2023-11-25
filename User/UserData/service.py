@@ -5,6 +5,7 @@ import json
 from collections import Counter
 import spacy
 
+
 # Load spaCy with medium-sized English word vectors
 nlp = spacy.load("en_core_web_md")
 
